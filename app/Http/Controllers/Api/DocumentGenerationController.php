@@ -124,7 +124,7 @@ class DocumentGenerationController extends Controller
      */
     private function generateDemandDocument(array $data)
     {
-        $templatePath = $this->templatesPath . '/DFD_template.docx';
+        $templatePath = $this->templatesPath . '/DFD_Diagnostico_Unificado_Template.docx';
         $outputFilename = 'documento_formalizacao_demanda_' . time() . '.docx';
         $outputPath = public_path('documents/' . $outputFilename);
 
@@ -187,14 +187,35 @@ class DocumentGenerationController extends Controller
                 'condicoes_pagamento' => 'Pagamento em etapas conforme cronograma e entregas.',
               
                 // Dados de cabeçalho, rodapé e assinatura
-                'cidade_maiusculo' => 'CIDADE EXEMPLO',
-                'cidade' => 'Cidade Exemplo',
+                'cidade_maiusculo' => 'SÃO SIMÃO',
+                'cidade' => 'SÃO SIMÃO',
                 'data_extenso' => '25 de abril de 2025',
-                'nome_autoridade' => 'João da Silva',
+                'nome_autoridade' => 'jonatas',
                 'cargo_autoridade' => 'Secretário de Administração',
                 'endereco' => 'Rua Central, 123',
                 'cep' => '12345-678',
                 'brasao' => '[IMAGEM_DO_BRASÃO]',
+
+                // Dados novos obrigatórios
+                'origem_fonte' => 'Demanda Interna',
+                'impacto_meta' => 'Reduzir em 30% o tempo de atendimento',
+                'riscos_ocupacionais' => 'Trabalho em altura, agentes biológicos',
+                'riscos_normas' => 'NR-01, NR-07',
+                'riscos_justificativa' => 'Conformidade com a CLT e Portaria MTP 672/2023',
+                'alternativa_a' => 'Compra definitiva com manutenção própria',
+                'alternativa_b' => 'Locação com suporte incluso',
+                'alternativa_conclusao' => 'Locação é mais econômica e sustentável',
+                'inerciarisco' => 'Paralisação do serviço educacional',
+                'inerciaplano' => 'Contrato emergencial temporário',
+                'ods_vinculados' => 'ODS 12, ODS 13',
+                'acao_sustentavel' => 'Implementar logística reversa',
+                'ia_duplicidade' => 'Nenhuma duplicidade detectada',
+                'ia_validacao' => 'Validado conforme PPA e LOA',
+                'transparencia_resumo' => 'Projeto de modernização educacional',
+                'transparencia_faq' => 'Perguntas e respostas jurídicas anexadas',
+                'transparencia_prazo' => '5',
+                'assinatura_formato' => 'ICP-Brasil'
+
               ];
               
               
@@ -257,6 +278,27 @@ class DocumentGenerationController extends Controller
             $templateProcessor->setValue('cidade', $data['cidade'] ?? 'Cidade Exemplo');
             $templateProcessor->setValue('endereco', $data['endereco'] ?? 'Rua Central, 123');
             $templateProcessor->setValue('cep', $data['cep'] ?? '12345-678');
+            $templateProcessor->setValue('origem_fonte', $data['origem_fonte']);
+
+
+            $templateProcessor->setValue('impacto_meta', $data['impacto_meta']);
+            $templateProcessor->setValue('riscos_ocupacionais', $data['riscos_ocupacionais']);
+            $templateProcessor->setValue('riscos_normas', $data['riscos_normas']);
+            $templateProcessor->setValue('riscos_justificativa', $data['riscos_justificativa']);
+            $templateProcessor->setValue('alternativa_a', $data['alternativa_a']);
+            $templateProcessor->setValue('alternativa_b', $data['alternativa_b']);
+            $templateProcessor->setValue('alternativa_conclusao', $data['alternativa_conclusao']);
+            $templateProcessor->setValue('inerciarisco', $data['inerciarisco']);
+            $templateProcessor->setValue('inerciaplano', $data['inerciaplano']);
+            $templateProcessor->setValue('ods_vinculados', $data['ods_vinculados']);
+            $templateProcessor->setValue('acao_sustentavel', $data['acao_sustentavel']);
+            $templateProcessor->setValue('ia_duplicidade', $data['ia_duplicidade']);
+            $templateProcessor->setValue('ia_validacao', $data['ia_validacao']);
+            $templateProcessor->setValue('transparencia_resumo', $data['transparencia_resumo']);
+            $templateProcessor->setValue('transparencia_faq', $data['transparencia_faq']);
+            $templateProcessor->setValue('transparencia_prazo', $data['transparencia_prazo']);
+            $templateProcessor->setValue('assinatura_formato', $data['assinatura_formato']);
+
 
             $templateProcessor->setImageValue('brasao', [
                 'path' => public_path('brasao/Brasaosaosimao-go-1.png'), // ou .jpg dependendo do formato

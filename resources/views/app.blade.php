@@ -14,10 +14,10 @@
     <!-- Scripts -->
     @viteReactRefresh 
     @vite(['resources/css/app.css', 'resources/js/app.jsx'])
-    @inertiaHead
+    
 </head>
 <body class="font-sans antialiased bg-gray-100">
     <div id="app" class="min-h-screen"></div>
-    @inertia
+   
 </body>
 </html> 

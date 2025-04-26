@@ -1,5 +1,3 @@
-import { Link } from '@inertiajs/react';
-
 export default function ResponsiveNavLink({
     active = false,
     className = '',
@@ -7,7 +5,7 @@ export default function ResponsiveNavLink({
     ...props
 }) {
     return (
-        <Link
+        <a
             {...props}
             className={`flex w-full items-start border-l-4 py-2 pe-4 ps-3 ${
                 active
@@ -16,6 +14,6 @@ export default function ResponsiveNavLink({
             } text-base font-medium transition duration-150 ease-in-out focus:outline-none ${className}`}
         >
             {children}
-        </Link>
+        </a>
     );
 }
