@@ -98,20 +98,46 @@ class RiskMatrixController extends BaseDocumentController
             ];
 
             // Criar e preencher a tabela
-            $table = $section->addTable();
+            $table = $section->addTable([
+                'borderSize' => 6,
+                'borderColor' => '000000',
+                'cellMargin' => 80
+            ]);
+            
+            // Estilo para o texto da tabela
+            $textStyle = [
+                'size' => 9,
+                'name' => 'Arial'
+            ];
+            
+            // Estilo para o cabeçalho
+            $headerStyle = [
+                'size' => 9,
+                'name' => 'Arial',
+                'bold' => true
+            ];
             
             // Cabeçalho da tabela
             $table->addRow();
             $headers = ['Seq', 'Evento de Risco', 'Dano', 'Impacto', 'Probabilidade', 'Ação Preventiva', 'Responsável Preventiva', 'Ação de Contingência', 'Responsável Contingência'];
             foreach ($headers as $header) {
-                $table->addCell(1500)->addText($header);
+                $cell = $table->addCell(1500, [
+                    'borderSize' => 6,
+                    'borderColor' => '000000',
+                    'bgColor' => 'F2F2F2'
+                ]);
+                $cell->addText($header, $headerStyle, ['alignment' => 'center']);
             }
 
             // Dados da tabela
             foreach ($riscos as $risco) {
                 $table->addRow();
                 foreach ($risco as $campo) {
-                    $table->addCell(1500)->addText($campo);
+                    $cell = $table->addCell(1500, [
+                        'borderSize' => 6,
+                        'borderColor' => '000000'
+                    ]);
+                    $cell->addText($campo, $textStyle);
                 }
             }
 
