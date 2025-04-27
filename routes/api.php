@@ -3,6 +3,11 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\DocumentGenerationController;
+use App\Http\Controllers\Api\GuidelinesController;
+use App\Http\Controllers\Api\DemandController;
+use App\Http\Controllers\Api\RiskMatrixController;
+use App\Http\Controllers\Api\PreliminaryStudyController;
+use App\Http\Controllers\Api\ReferenceTermsController;
 use Illuminate\Support\Facades\Storage;
 
 /*
@@ -20,7 +25,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/generate-documents', [DocumentGenerationController::class, 'generate']);
+// Document generation routes
+Route::post('/documents/generate', [DocumentGenerationController::class, 'generate']);
+
+// Individual document routes
+Route::post('/documents/guidelines', [GuidelinesController::class, 'generate']);
+Route::post('/documents/demand', [DemandController::class, 'generate']);
+Route::post('/documents/risk-matrix', [RiskMatrixController::class, 'generate']);
+Route::post('/documents/preliminary-study', [PreliminaryStudyController::class, 'generate']);
+Route::post('/documents/reference-terms', [ReferenceTermsController::class, 'generate']);
 
 Route::get('/test-openai', function() {
     try {

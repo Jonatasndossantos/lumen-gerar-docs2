@@ -17,7 +17,7 @@ const ObjectDetails = ({ formData, updateFormData, nextStep, prevStep }) => {
         
         try {
             // Send the form data to the backend to generate documents
-            const response = await fetch('/api/generate-documents', {
+            const response = await fetch('/api/documents/generate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
