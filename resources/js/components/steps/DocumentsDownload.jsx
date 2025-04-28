@@ -61,7 +61,7 @@ const DocumentsDownload = ({ formData, prevStep }) => {
     };
 
     const shareOnWhatsApp = () => {
-        const text = encodeURIComponent("Acabei de usar o Sistema de Construção Inteligente de Documentos de Licitação. Confira: https://sistemadetr.com.br/wizard/create");
+        const text = encodeURIComponent("Acabei de usar o Sistema de Construção Inteligente de Documentos de Licitação. Confira: https://lumen");
         window.open(`https://wa.me/?text=${text}`, '_blank');
     };
 
@@ -83,7 +83,7 @@ const DocumentsDownload = ({ formData, prevStep }) => {
                                 download
                                 className="text-blue-600 hover:text-blue-800 font-semibold"
                             >
-                                Clique aqui para acessar o documento
+                                Clique aqui para baixar
                             </a>
                         )}
                         

@@ -9,11 +9,15 @@ const ObjectDetails = ({ formData, updateFormData, nextStep, prevStep }) => {
     });
 
     const onSubmit = async (data) => {
+        // Update form data and move to next step immediately
         updateFormData({ 
             ...data,
             isGenerating: true,
             documents: null
         });
+        
+        // Move to next step immediately
+        nextStep();
         
         try {
             // Send the form data to the backend to generate documents
@@ -40,12 +44,11 @@ const ObjectDetails = ({ formData, updateFormData, nextStep, prevStep }) => {
             
             const result = await response.json();
             
+            // Update form data with the results
             updateFormData({
                 isGenerating: false,
                 documents: result.documents
             });
-            
-            nextStep();
         } catch (error) {
             console.error('Erro ao gerar documentos:', error);
             updateFormData({

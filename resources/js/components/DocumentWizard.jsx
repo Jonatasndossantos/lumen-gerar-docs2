@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+
 import PersonalDetails from './steps/PersonalDetails';
 import OtherDetails from './steps/OtherDetails';
 import ObjectDetails from './steps/ObjectDetails';
 import DocumentsDownload from './steps/DocumentsDownload';
 import ProgressBar from './common/ProgressBar';
+import WelcomeStep from './steps/WelcomeStep';
 
 const DocumentWizard = () => {
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(0);
     const [formData, setFormData] = useState({
         // Personal details
         name: '',
@@ -46,6 +48,7 @@ const DocumentWizard = () => {
                     formData={formData} 
                     updateFormData={updateFormData} 
                     nextStep={nextStep} 
+                    prevStep={() => setStep(0)}
                 />;
             case 2:
                 return <OtherDetails 
@@ -68,21 +71,15 @@ const DocumentWizard = () => {
                     prevStep={prevStep} 
                 />;
             default:
-                return <PersonalDetails 
-                    formData={formData} 
-                    updateFormData={updateFormData} 
-                    nextStep={nextStep} 
-                />;
+                return <WelcomeStep nextStep={nextStep} />;
         }
     };
 
     return (
-        <div className="max-w-1/3 mx-auto p-6">
-            <h1 className="text-3xl font-bold text-center mb-8">
-                Sistema de Construção Inteligente de DFD, ETP, Matriz de Risco, TR e Outros Documentos
-            </h1>
+        <div className="w-full max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto p-4 sm:p-6">
             
-            <ProgressBar currentStep={step} totalSteps={4} />
+            
+            {step >= 1 && <ProgressBar currentStep={step} totalSteps={4} />}
             
             <div className="mt-8 bg-white p-6 rounded-lg shadow-md mb-8">
                 {renderStep()}
