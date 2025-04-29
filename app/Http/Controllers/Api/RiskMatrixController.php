@@ -129,7 +129,7 @@ class RiskMatrixController extends BaseDocumentController
                 $cell->addText($header, $headerStyle, ['alignment' => 'center']);
             }
 
-            // Dados da tabela
+            // Adicionar linhas com os dados
             foreach ($riscos as $risco) {
                 $table->addRow();
                 foreach ($risco as $campo) {
@@ -176,7 +176,7 @@ class RiskMatrixController extends BaseDocumentController
                 $templateProcessor->setValue($key, $value);
             }
             
-            $this->setInstitutionalData($templateProcessor);
+            $this->setInstitutionalData($templateProcessor, $request);
 
             // 4. Salvar o arquivo final
             $templateProcessor->saveAs($outputPath);

@@ -1,14 +1,7 @@
 import React from 'react';
 
 const DocumentsDownload = ({ formData, prevStep }) => {
-    if (formData.isGenerating) {
-        return (
-            <div className="text-center py-8">
-                <h3 className="text-xl font-semibold mb-6">Aguarde alguns minutos enquanto os arquivos estão sendo criados</h3>
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
-            </div>
-        );
-    }
+    
 
     if (formData.error) {
         return (
@@ -29,7 +22,7 @@ const DocumentsDownload = ({ formData, prevStep }) => {
     }
 
     const documentTypes = [
-        { id: 'guidelines', name: 'Orientações de uso', status: 'done' },
+        { id: 'guidelines', name: 'Orientações de uso', status: 'pending' },
         { id: 'demand', name: 'Documento de Formalização de Demanda', status: 'pending' },
         { id: 'riskMatrix', name: 'Matriz de Risco', status: 'pending' },
         { id: 'preliminaryStudy', name: 'Estudo Técnico Preliminar', status: 'pending' },

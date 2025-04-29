@@ -23,7 +23,7 @@ class GuidelinesController extends BaseDocumentController
             $templateProcessor->setValue('institution', $request->institution);
             $templateProcessor->setValue('date', date('d/m/Y'));
             
-            $this->setInstitutionalData($templateProcessor);
+            $this->setInstitutionalData($templateProcessor, $request);
             
             $templateProcessor->saveAs($outputPath);
             

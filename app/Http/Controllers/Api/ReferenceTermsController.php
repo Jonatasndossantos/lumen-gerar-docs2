@@ -46,7 +46,7 @@ class ReferenceTermsController extends BaseDocumentController
                 $templateProcessor->setValue($key, $value);
             }
             
-            $this->setInstitutionalData($templateProcessor);
+            $this->setInstitutionalData($templateProcessor, $request);
             
             $templateProcessor->saveAs($outputPath);
             

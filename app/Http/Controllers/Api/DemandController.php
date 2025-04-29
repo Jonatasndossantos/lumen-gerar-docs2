@@ -21,7 +21,7 @@ class DemandController extends BaseDocumentController
                 'setor' => 'Setor de Tecnologia da Informação',
                 'departamento' => 'Departamento de Sistemas e Inovação',
                 'responsavel' => 'Maria Clara Oliveira',
-                'descricaoObjeto' => 'Contratação de empresa especializada em desenvolvimento de software para criação de sistema de gestão educacional.',
+                'descricaoObjeto' => 'Contratação de empresa especializaada em desenvolvimento de software para criação de sistema de gestão educacional.',
                 'valor' => '350.000,00',
                 'tipoObjeto' => 'Serviço Técnico Especializado',
                 'formaContratacao' => 'Pregão Eletrônico',
@@ -84,7 +84,7 @@ class DemandController extends BaseDocumentController
                 $templateProcessor->setValue($key, $value);
             }
             
-            $this->setInstitutionalData($templateProcessor);
+            $this->setInstitutionalData($templateProcessor, $request);
             
             $templateProcessor->saveAs($outputPath);
             

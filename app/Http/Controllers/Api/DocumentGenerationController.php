@@ -62,9 +62,9 @@ class DocumentGenerationController extends Controller
 
             // Generate the documents using specialized controllers
             $documents = [
+                'demand' => $this->demandController->generate($request),
                 'riskMatrix' => $this->riskMatrixController->generate($request),
                 'guidelines' => $this->guidelinesController->generate($request),
-                'demand' => $this->demandController->generate($request),
                 'preliminaryStudy' => $this->preliminaryStudyController->generate($request),
                 'referenceTerms' => $this->referenceTermsController->generate($request),
             ];
