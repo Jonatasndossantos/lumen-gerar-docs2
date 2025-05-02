@@ -68,35 +68,40 @@ class DocumentGenerationController extends Controller
             
             // 1. Guidelines
             try {
-                $documents['guidelines'] = $this->guidelinesController->generate($request);
+                $response = $this->guidelinesController->generate($request);
+		$documents['guidelines'] = $response->getData()->url;
             } catch (Exception $e) {
                 \Log::error('Error generating guidelines: ' . $e->getMessage());
             }
             
             // 2. Demand
             try {
-                $documents['demand'] = $this->demandController->generate($request);
+                $response = $this->demandController->generate($request);
+		$documents['demand'] = $response->getData()->url;
             } catch (Exception $e) {
                 \Log::error('Error generating demand: ' . $e->getMessage());
             }
             
             // 3. Risk Matrix
             try {
-                $documents['riskMatrix'] = $this->riskMatrixController->generate($request);
+                $response = $this->riskMatrixController->generate($request);
+		$documents['riskMatrix'] = $response->getData()->url;
             } catch (Exception $e) {
                 \Log::error('Error generating risk matrix: ' . $e->getMessage());
             }
             
             // 4. Preliminary Study
             try {
-                $documents['preliminaryStudy'] = $this->preliminaryStudyController->generate($request);
+                $response = $this->preliminaryStudyController->generate($request);
+		$documents['preliminaryStudy'] = $response->getData()->url;
             } catch (Exception $e) {
                 \Log::error('Error generating preliminary study: ' . $e->getMessage());
             }
             
             // 5. Reference Terms
             try {
-                $documents['referenceTerms'] = $this->referenceTermsController->generate($request);
+                $response = $this->referenceTermsController->generate($request);
+		$documents['referenceTerms'] = $response->getData()->url;
             } catch (Exception $e) {
                 \Log::error('Error generating reference terms: ' . $e->getMessage());
             }

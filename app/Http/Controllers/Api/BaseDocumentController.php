@@ -33,7 +33,7 @@ class BaseDocumentController extends Controller
             return Cache::get($cacheKey);
         }
 
-        $apiKey = env('OPENAI_API_KEY');
+        $apiKey = config('services.openai.key');
         $prompt = $this->buildPrompt($type, $request);
 
         try {
