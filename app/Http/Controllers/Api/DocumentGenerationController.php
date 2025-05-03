@@ -70,159 +70,49 @@ class DocumentGenerationController extends Controller
             $errors = [];
             $maxRetries = 3;
             
-            // 1. Guidelines
-            try {
+            // Function to generate a single document with retries
+            $generateDocument = function($controller, $type, $request) use (&$documents, &$errors, $maxRetries) {
                 $retryCount = 0;
                 while ($retryCount < $maxRetries) {
                     try {
-                        \Log::info('Tentando gerar Guidelines (tentativa ' . ($retryCount + 1) . ')');
-                        $response = $this->guidelinesController->generate($request);
+                        \Log::info("Tentando gerar {$type} (tentativa " . ($retryCount + 1) . ")");
+                        $response = $controller->generate($request);
+                        
+                        if (!$response->isSuccessful()) {
+                            throw new Exception('Resposta não bem-sucedida: ' . $response->status());
+                        }
+                        
                         $responseData = $response->getData();
-                        if (isset($responseData->url)) {
-                            $documents['guidelines'] = $responseData->url;
-                            \Log::info('Guidelines gerado com sucesso');
-                            break;
+                        \Log::info("Resposta recebida para {$type}:", (array)$responseData);
+                        
+                        if (isset($responseData->success) && $responseData->success && isset($responseData->url)) {
+                            $documents[$type] = $responseData->url;
+                            \Log::info("{$type} gerado com sucesso: " . $responseData->url);
+                            return true;
                         } else {
-                            throw new Exception('URL não encontrada na resposta');
+                            throw new Exception('URL não encontrada na resposta ou resposta inválida');
                         }
                     } catch (Exception $e) {
                         $retryCount++;
-                        \Log::error('Erro ao gerar Guidelines (tentativa ' . $retryCount . '): ' . $e->getMessage());
+                        \Log::error("Erro ao gerar {$type} (tentativa {$retryCount}): " . $e->getMessage());
                         if ($retryCount >= $maxRetries) {
-                            throw $e;
-                        }
-                        sleep(2); // Espera 2 segundos antes de tentar novamente
-                    }
-                }
-            } catch (Exception $e) {
-                \Log::error('Error generating guidelines: ' . $e->getMessage());
-                $errors['guidelines'] = $e->getMessage();
-            }
-            
-            // 2. Demand
-            try {
-                $retryCount = 0;
-                while ($retryCount < $maxRetries) {
-                    try {
-                        \Log::info('Tentando gerar Demand (tentativa ' . ($retryCount + 1) . ')');
-                        $response = $this->demandController->generate($request);
-                        $responseData = $response->getData();
-                        if (isset($responseData->url)) {
-                            $documents['demand'] = $responseData->url;
-                            \Log::info('Demand gerado com sucesso');
-                            break;
-                        } else {
-                            throw new Exception('URL não encontrada na resposta');
-                        }
-                    } catch (Exception $e) {
-                        $retryCount++;
-                        \Log::error('Erro ao gerar Demand (tentativa ' . $retryCount . '): ' . $e->getMessage());
-                        if ($retryCount >= $maxRetries) {
-                            throw $e;
+                            $errors[$type] = $e->getMessage();
+                            return false;
                         }
                         sleep(2);
                     }
                 }
-            } catch (Exception $e) {
-                \Log::error('Error generating demand: ' . $e->getMessage());
-                $errors['demand'] = $e->getMessage();
-            }
-            
-            // 3. Preliminary Study
-            try {
-                $retryCount = 0;
-                while ($retryCount < $maxRetries) {
-                    try {
-                        \Log::info('Tentando gerar Preliminary Study (tentativa ' . ($retryCount + 1) . ')');
-                        $response = $this->preliminaryStudyController->generate($request);
-                        $responseData = $response->getData();
-                        if (isset($responseData->url)) {
-                            $documents['preliminaryStudy'] = $responseData->url;
-                            \Log::info('Preliminary Study gerado com sucesso');
-                            break;
-                        } else {
-                            throw new Exception('URL não encontrada na resposta');
-                        }
-                    } catch (Exception $e) {
-                        $retryCount++;
-                        \Log::error('Erro ao gerar Preliminary Study (tentativa ' . $retryCount . '): ' . $e->getMessage());
-                        if ($retryCount >= $maxRetries) {
-                            throw $e;
-                        }
-                        sleep(2);
-                    }
-                }
-            } catch (Exception $e) {
-                \Log::error('Error generating preliminary study: ' . $e->getMessage());
-                $errors['preliminaryStudy'] = $e->getMessage();
-            }
-            
-            // 4. Risk Matrix
-            try {
-                $retryCount = 0;
-                while ($retryCount < $maxRetries) {
-                    try {
-                        \Log::info('Tentando gerar Risk Matrix (tentativa ' . ($retryCount + 1) . ')');
-                        $response = $this->riskMatrixController->generate($request);
-                        $responseData = $response->getData();
-                        if (isset($responseData->url)) {
-                            $documents['riskMatrix'] = $responseData->url;
-                            \Log::info('Risk Matrix gerado com sucesso');
-                            break;
-                        } else {
-                            throw new Exception('URL não encontrada na resposta');
-                        }
-                    } catch (Exception $e) {
-                        $retryCount++;
-                        \Log::error('Erro ao gerar Risk Matrix (tentativa ' . $retryCount . '): ' . $e->getMessage());
-                        if ($retryCount >= $maxRetries) {
-                            throw $e;
-                        }
-                        sleep(2);
-                    }
-                }
-            } catch (Exception $e) {
-                \Log::error('Error generating risk matrix: ' . $e->getMessage());
-                $errors['riskMatrix'] = $e->getMessage();
-            }
-            
-            // 5. Reference Terms
-            try {
-                $retryCount = 0;
-                while ($retryCount < $maxRetries) {
-                    try {
-                        \Log::info('Tentando gerar Reference Terms (tentativa ' . ($retryCount + 1) . ')');
-                        $response = $this->referenceTermsController->generate($request);
-                        $responseData = $response->getData();
-                        if (isset($responseData->url)) {
-                            $documents['referenceTerms'] = $responseData->url;
-                            \Log::info('Reference Terms gerado com sucesso');
-                            break;
-                        } else {
-                            throw new Exception('URL não encontrada na resposta');
-                        }
-                    } catch (Exception $e) {
-                        $retryCount++;
-                        \Log::error('Erro ao gerar Reference Terms (tentativa ' . $retryCount . '): ' . $e->getMessage());
-                        if ($retryCount >= $maxRetries) {
-                            throw $e;
-                        }
-                        sleep(2);
-                    }
-                }
-            } catch (Exception $e) {
-                \Log::error('Error generating reference terms: ' . $e->getMessage());
-                $errors['referenceTerms'] = $e->getMessage();
-            }
-            
-            // Check if at least one document was generated
-            if (empty($documents)) {
-                throw new Exception('Nenhum documento foi gerado com sucesso.');
-            }
-            
-            \Log::info('Documentos gerados com sucesso:', $documents);
-            \Log::info('Erros encontrados:', $errors);
-            
+                return false;
+            };
+
+            // Generate each document independently
+            $generateDocument($this->guidelinesController, 'guidelines', $request);
+            $generateDocument($this->demandController, 'demand', $request);
+            $generateDocument($this->riskMatrixController, 'riskMatrix', $request);
+            $generateDocument($this->preliminaryStudyController, 'preliminaryStudy', $request);
+            $generateDocument($this->referenceTermsController, 'referenceTerms', $request);
+
+            // Return the results
             return response()->json([
                 'success' => true,
                 'documents' => $documents,

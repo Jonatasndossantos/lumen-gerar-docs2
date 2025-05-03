@@ -1,16 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import Select from 'react-select';
 import municipios from './municipios_exemplo.json';
 
 const OtherDetails = ({ formData, updateFormData, nextStep, prevStep }) => {
-    const { control, handleSubmit, register, formState: { errors } } = useForm({
+    const { control, handleSubmit, register, formState: { errors }, watch, setValue } = useForm({
         defaultValues: {
             municipality: formData.municipality,
             institution: formData.institution,
             address: formData.address
         }
     });
+
+    const selectedMunicipality = watch('municipality');
+    const selectedInstitution = watch('institution');
+
+    useEffect(() => {
+        if (selectedInstitution === 'Prefeitura' && selectedMunicipality) {
+            const [municipioNome] = selectedMunicipality.split('-');
+            const municipio = municipios.find(m => m.nome === municipioNome);
+            
+            if (municipio && municipio.endereco) {
+                setValue('address', municipio.endereco);
+            }
+        }
+    }, [selectedMunicipality, selectedInstitution, setValue]);
 
     const options = municipios.map(m => ({
         value: `${m.nome}-${m.uf}`,

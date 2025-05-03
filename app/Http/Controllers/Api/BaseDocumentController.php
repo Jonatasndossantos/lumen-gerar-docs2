@@ -83,10 +83,32 @@ class BaseDocumentController extends Controller
             // Converte todos os valores para string
             $data = array_map(function($value) {
                 if (is_array($value)) {
-                    return implode("\n", $value);
+                    if (isset($value['riscos'])) {
+                        // Mantém a estrutura de riscos intacta
+                        $value['riscos'] = array_map(function($risco) {
+                            if (is_array($risco)) {
+                                return array_map(function($item) {
+                                    return is_array($item) ? implode("\n", $item) : (string) $item;
+                                }, $risco);
+                            }
+                            return (string) $risco;
+                        }, $value['riscos']);
+                        return $value;
+                    }
+                    return implode("\n", array_map(function($item) {
+                        return is_array($item) ? implode("\n", $item) : (string) $item;
+                    }, $value));
                 }
                 return (string) $value;
             }, $data);
+
+            // Validação adicional para dados específicos
+            if ($type === 'risco') {
+                if (!isset($data['riscos']) || !is_array($data['riscos'])) {
+                    \Log::error('Dados de risco inválidos:', ['data' => $data]);
+                    throw new \Exception('Dados de risco inválidos: estrutura de riscos não encontrada');
+                }
+            }
 
             // Salva no cache
             Cache::put($cacheKey, $data, $this->cacheTime);
@@ -418,18 +440,17 @@ class BaseDocumentController extends Controller
             "data_inicio_contratacao": "<DD/MM/AAAA>",
             "unidade_responsavel": "<nome da unidade ou secretaria>",
             "fase_analise": "<fase da contratação (ex: planejamento, instrução, execução)>",
-
             "riscos": [
                 {
-                "seq": "<número sequencial>",
-                "evento": "<evento de risco específico e descritivo>",
-                "dano": "<consequência direta ou prejuízo administrativo>",
-                "impacto": "<baixo | médio | alto>",
-                "probabilidade": "<baixa | média | alta>",
-                "acao_preventiva": "<ação clara para evitar a ocorrência do risco>",
-                "responsavel_preventiva": "<responsável técnico ou unidade gestora>",
-                "acao_contingencia": "<ação a ser executada se o risco ocorrer>",
-                "responsavel_contingencia": "<responsável pela mitigação pós-evento>"
+                    "seq": "1",
+                    "evento": "<evento de risco específico e descritivo>",
+                    "dano": "<consequência direta ou prejuízo administrativo>",
+                    "impacto": "<baixo | médio | alto>",
+                    "probabilidade": "<baixa | média | alta>",
+                    "acao_preventiva": "<ação clara para evitar a ocorrência do risco>",
+                    "responsavel_preventiva": "<responsável técnico ou unidade gestora>",
+                    "acao_contingencia": "<ação a ser executada se o risco ocorrer>",
+                    "responsavel_contingencia": "<responsável pela mitigação pós-evento>"
                 }
             ]
             }
@@ -443,6 +464,8 @@ class BaseDocumentController extends Controller
             - Use **linguagem formal, técnica e precisa**.
             - As ações devem ser detalhadas (o quê, como, por quem, quando).
             - Classifique impacto e probabilidade usando somente os valores padronizados: **baixo | médio | alto**.
+            - IMPORTANTE: Mantenha a estrutura exata do JSON, incluindo todos os campos para cada risco.
+            - NÃO modifique a estrutura do JSON ou adicione campos extras.
 
             ---
 

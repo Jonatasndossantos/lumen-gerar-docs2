@@ -60,6 +60,73 @@ class RiskMatrixController extends Controller
 
             // Gera os dados via IA
             $data = $this->baseDocument->generateAiData('risco', $request);
+            
+            \Log::info('Dados recebidos para matriz de risco:', ['data' => $data]);
+
+            // Processar a string de riscos em um array estruturado
+            $riscosArray = [];
+            if (isset($data['data']['riscos'])) {
+                $riscosData = $data['data']['riscos'];
+                \Log::info('Dados de riscos recebidos:', ['riscos' => $riscosData]);
+                
+                // Se for uma string, processa como texto
+                if (is_string($riscosData)) {
+                    // Divide a string em blocos de risco (cada risco começa com um número)
+                    $blocos = preg_split('/\n(?=\d+\n)/', trim($riscosData));
+                    \Log::info('Blocos de risco encontrados:', ['blocos' => $blocos]);
+                    
+                    foreach ($blocos as $bloco) {
+                        $linhas = array_values(array_filter(explode("\n", trim($bloco))));
+                        if (empty($linhas)) continue;
+                        
+                        // O primeiro elemento é o número do risco
+                        $numero = array_shift($linhas);
+                        if (!is_numeric($numero)) continue;
+                        
+                        $risco = [
+                            'seq' => $numero,
+                            'evento' => $linhas[0] ?? '-',
+                            'dano' => $linhas[1] ?? '-',
+                            'impacto' => $linhas[2] ?? '-',
+                            'probabilidade' => $linhas[3] ?? '-',
+                            'acao_preventiva' => $linhas[4] ?? '-',
+                            'responsavel_preventiva' => $linhas[5] ?? '-',
+                            'acao_contingencia' => $linhas[6] ?? '-',
+                            'responsavel_contingencia' => $linhas[7] ?? '-'
+                        ];
+                        
+                        $riscosArray[] = $risco;
+                    }
+                } 
+                // Se for um array, processa diretamente
+                else if (is_array($riscosData)) {
+                    foreach ($riscosData as $risco) {
+                        if (is_array($risco)) {
+                            $riscosArray[] = [
+                                'seq' => $risco['seq'] ?? '-',
+                                'evento' => $risco['evento'] ?? '-',
+                                'dano' => $risco['dano'] ?? '-',
+                                'impacto' => $risco['impacto'] ?? '-',
+                                'probabilidade' => $risco['probabilidade'] ?? '-',
+                                'acao_preventiva' => $risco['acao_preventiva'] ?? '-',
+                                'responsavel_preventiva' => $risco['responsavel_preventiva'] ?? '-',
+                                'acao_contingencia' => $risco['acao_contingencia'] ?? '-',
+                                'responsavel_contingencia' => $risco['responsavel_contingencia'] ?? '-'
+                            ];
+                        }
+                    }
+                }
+            }
+
+            if (empty($riscosArray)) {
+                \Log::error('Falha ao processar riscos:', [
+                    'dados_originais' => $data['data']['riscos'] ?? 'não disponível',
+                    'tipo_dados' => isset($data['data']['riscos']) ? gettype($data['data']['riscos']) : 'não definido'
+                ]);
+                throw new Exception('Nenhum risco encontrado nos dados');
+            }
+
+            \Log::info('Riscos processados com sucesso:', ['riscos' => $riscosArray]);
 
             // Criar e preencher a tabela
             $table = $section->addTable([
@@ -94,15 +161,26 @@ class RiskMatrixController extends Controller
             }
 
             // Adicionar linhas com os dados
-            foreach ($data['riscos'] as $index => $risco) {
+            foreach ($riscosArray as $risco) {
                 $table->addRow();
-                $risco['seq'] = $index + 1;
-                foreach ($risco as $campo) {
+                $row = [
+                    'seq' => $risco['seq'],
+                    'evento' => $risco['evento'],
+                    'dano' => $risco['dano'],
+                    'impacto' => $risco['impacto'],
+                    'probabilidade' => $risco['probabilidade'],
+                    'acao_preventiva' => $risco['acao_preventiva'],
+                    'responsavel_preventiva' => $risco['responsavel_preventiva'],
+                    'acao_contingencia' => $risco['acao_contingencia'],
+                    'responsavel_contingencia' => $risco['responsavel_contingencia']
+                ];
+                
+                foreach ($row as $value) {
                     $cell = $table->addCell(1500, [
                         'borderSize' => 6,
                         'borderColor' => '000000'
                     ]);
-                    $cell->addText($campo, $textStyle);
+                    $cell->addText((string)$value, $textStyle);
                 }
             }
 
@@ -148,13 +226,20 @@ class RiskMatrixController extends Controller
                 unlink($tempPath);
             }
             
+            $url = url("documents/{$outputFilename}");
+            if (!$url) {
+                throw new Exception("Failed to generate URL for the document");
+            }
+            
+            \Log::info("Risk Matrix document generated successfully at: " . $url);
+            
             return response()->json([
                 'success' => true,
-                'url' => url("documents/{$outputFilename}")
-            ]);
+                'url' => $url
+            ], 200);
         } catch (Exception $e) {
             // Log the error
-            error_log("Error in RiskMatrixController: " . $e->getMessage());
+            \Log::error("Error in RiskMatrixController: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'error' => "Error generating risk matrix document: " . $e->getMessage()
