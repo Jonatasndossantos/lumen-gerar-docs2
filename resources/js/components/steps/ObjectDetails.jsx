@@ -31,6 +31,9 @@ const ObjectDetails = ({ formData, updateFormData, nextStep, prevStep }) => {
         
         try {
             // Send the form data to the backend to generate documents
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutos de timeout
+
             const response = await fetch('/api/documents/generate', {
                 method: 'POST',
                 headers: {
@@ -45,26 +48,37 @@ const ObjectDetails = ({ formData, updateFormData, nextStep, prevStep }) => {
                     institution: formData.institution,
                     address: formData.address,
                     objectDescription: data.objectDescription
-                })
+                }),
+                signal: controller.signal
             });
             
-            if (!response.ok) {
-                throw new Error('Falha ao gerar documentos');
-            }
-            
+            clearTimeout(timeoutId);
+
             const result = await response.json();
             
             // Update form data with the results
             updateFormData({
                 isGenerating: false,
-                documents: result.documents
+                documents: result.documents || {},
+                errors: result.errors || {},
+                hasErrors: result.hasErrors || false,
+                message: result.message || 'Processamento concluído'
             });
         } catch (error) {
             console.error('Erro ao gerar documentos:', error);
-            updateFormData({
-                isGenerating: false,
-                error: 'Houve um erro ao gerar os documentos. Por favor, tente novamente.'
-            });
+            
+            // Se for um erro de timeout
+            if (error.name === 'AbortError') {
+                updateFormData({
+                    isGenerating: false,
+                    error: 'O tempo de processamento excedeu o limite. Os documentos continuarão sendo gerados em segundo plano.'
+                });
+            } else {
+                updateFormData({
+                    isGenerating: false,
+                    error: 'Houve um erro ao gerar os documentos. Por favor, tente novamente.'
+                });
+            }
         }
     };
 
