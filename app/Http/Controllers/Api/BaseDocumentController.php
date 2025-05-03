@@ -37,14 +37,16 @@ class BaseDocumentController extends Controller
         $prompt = $this->buildPrompt($type, $request);
 
         try {
+            \Log::info('Enviando prompt para IA:', ['type' => $type, 'prompt' => $prompt]);
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
             ])
-            ->timeout(120) // Aumentado para 120 segundos
+            ->timeout(120)
             ->retry(3, 2000, function ($exception, $request) {
                 return $exception instanceof \Illuminate\Http\Client\ConnectionException ||
                        $exception instanceof \Illuminate\Http\Client\TimeoutException;
-            }) // Retry com backoff exponencial
+            })
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => env('OPENAI_MODEL', 'gpt-4-turbo'),
                 'messages' => [
@@ -56,11 +58,12 @@ class BaseDocumentController extends Controller
             ]);
 
             if (!$response->successful()) {
-                Log::error('OpenAI API Error: ' . $response->body());
+                \Log::error('OpenAI API Error: ' . $response->body());
                 throw new \Exception('Erro ao comunicar com a OpenAI: ' . $response->body());
             }
 
             $content = trim($response->json('choices.0.message.content'));
+            \Log::info('Resposta bruta da IA:', ['content' => $content]);
             
             // Remove possíveis caracteres não-JSON do início e fim
             $content = preg_replace('/^[^{]*/', '', $content);
@@ -70,8 +73,8 @@ class BaseDocumentController extends Controller
             $data = json_decode($content, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error('JSON Parse Error: ' . json_last_error_msg());
-                Log::error('Conteúdo recebido: ' . $content);
+                \Log::error('JSON Parse Error: ' . json_last_error_msg());
+                \Log::error('Conteúdo recebido: ' . $content);
                 throw new \Exception('Erro ao interpretar o JSON: ' . json_last_error_msg());
             }
 
@@ -80,34 +83,15 @@ class BaseDocumentController extends Controller
                 throw new \Exception('O JSON retornado não é um array válido');
             }
 
-            // Converte todos os valores para string
-            $data = array_map(function($value) {
-                if (is_array($value)) {
-                    if (isset($value['riscos'])) {
-                        // Mantém a estrutura de riscos intacta
-                        $value['riscos'] = array_map(function($risco) {
-                            if (is_array($risco)) {
-                                return array_map(function($item) {
-                                    return is_array($item) ? implode("\n", $item) : (string) $item;
-                                }, $risco);
-                            }
-                            return (string) $risco;
-                        }, $value['riscos']);
-                        return $value;
-                    }
-                    return implode("\n", array_map(function($item) {
-                        return is_array($item) ? implode("\n", $item) : (string) $item;
-                    }, $value));
-                }
-                return (string) $value;
-            }, $data);
-
-            // Validação adicional para dados específicos
+            // Para matriz de risco, garante a estrutura correta
             if ($type === 'risco') {
-                if (!isset($data['riscos']) || !is_array($data['riscos'])) {
-                    \Log::error('Dados de risco inválidos:', ['data' => $data]);
-                    throw new \Exception('Dados de risco inválidos: estrutura de riscos não encontrada');
+                if (!isset($data['data'])) {
+                    $data = ['data' => $data];
                 }
+                if (!isset($data['data']['riscos'])) {
+                    throw new \Exception('Estrutura de riscos não encontrada na resposta da IA');
+                }
+                \Log::info('Dados de risco processados:', ['data' => $data]);
             }
 
             // Salva no cache
@@ -115,7 +99,7 @@ class BaseDocumentController extends Controller
 
             return $data;
         } catch (\Exception $e) {
-            Log::error('Error in generateAiData: ' . $e->getMessage());
+            \Log::error('Error in generateAiData: ' . $e->getMessage());
             throw $e;
         }
     }
