@@ -9,6 +9,16 @@ const ObjectDetails = ({ formData, updateFormData, nextStep, prevStep }) => {
     });
 
     const onSubmit = async (data) => {
+        console.log('Dados sendo enviados:', {
+            name: formData.name,
+            email: formData.email,
+            whatsapp: formData.whatsapp,
+            municipality: formData.municipality,
+            institution: formData.institution,
+            address: formData.address,
+            objectDescription: data.objectDescription
+        });
+        
         // Update form data and move to next step immediately
         updateFormData({ 
             ...data,

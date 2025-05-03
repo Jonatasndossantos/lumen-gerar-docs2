@@ -1,3 +1,151 @@
+Estamos usando **React com Vite dentro do Laravel** (ou seja, um projeto **monolítico** com frontend e backend juntos), isso simplifica ainda mais a estrutura e o deploy, pois o Vite entrega os assets diretamente e o Laravel serve tudo no mesmo projeto. Nesse caso, siga as orientações abaixo adaptadas à sua arquitetura atual:
+
+---
+
+## 📦 Estrutura do Projeto
+
+Você tem:
+
+```
+/var/www/laravel-back
+├── app/
+├── bootstrap/
+├── public/
+│   └── build/          <-- saída do Vite
+├── resources/
+│   └── js/             <-- código React
+├── routes/
+│   └── web.php         <-- rotas Laravel
+├── .env                <-- APP_NAME=LUMEN
+```
+
+---
+
+## ✅ Etapas para Deploy do Laravel + React (Vite)
+
+### 1. **Acessar o servidor**
+
+```bash
+ssh root@209.97.156.243
+cd /var/www
+```
+
+### 2. **Clonar ou enviar o projeto**
+
+```bash
+git clone https://github.com/seu-usuario/seu-repo.git laravel-back
+cd laravel-back
+```
+
+---
+
+### 3. **Instalar dependências**
+
+#### 🐘 Backend Laravel:
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
+
+#### ⚛️ Frontend React com Vite:
+```bash
+npm install
+npm run build
+```
+
+> Isso gerará os arquivos Vite em `public/build/`.
+
+---
+
+### 4. **Ajustar permissões**
+
+```bash
+chown -R www-data:www-data /var/www/laravel-back
+chmod -R 775 storage bootstrap/cache
+```
+
+---
+
+### 5. **NGINX Configuration**
+
+Crie a config do domínio:
+
+```bash
+nano /etc/nginx/sites-available/gerador.lumenpublica.com.br
+```
+
+Cole esse conteúdo:
+
+```nginx
+server {
+    listen 80;
+    server_name gerador.lumenpublica.com.br;
+
+    root /var/www/laravel-back/public;
+    index index.php index.html;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+```
+
+Ative o site:
+```bash
+ln -s /etc/nginx/sites-available/gerador.lumenpublica.com.br /etc/nginx/sites-enabled/
+nginx -t
+systemctl reload nginx
+```
+
+---
+
+### 6. **Certificado HTTPS com Let's Encrypt**
+
+```bash
+apt install certbot python3-certbot-nginx -y
+certbot --nginx -d gerador.lumenpublica.com.br
+```
+
+---
+
+## ✅ Verificações Finais
+
+- Laravel (`php artisan serve`) **não é necessário** em produção, pois o NGINX com PHP-FPM cuida disso.
+- Você **não precisa de banco**, então pode comentar ou limpar a seção `DB_*` no `.env`.
+- Certifique-se de que `APP_NAME=LUMEN` no `.env` está como deseja — esse nome aparece em notificações, erros, logs, etc.
+
+---
+
+## ✅ Comando final de build e deploy (resumo rápido)
+
+```bash
+cd /var/www/laravel-back
+composer install
+npm install && npm run build
+php artisan key:generate
+chown -R www-data:www-data .
+```
+
+---
+
+Se quiser, posso te gerar um **script de instalação automática `.sh`** para colocar tudo em produção rapidamente. Deseja isso?
+
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">

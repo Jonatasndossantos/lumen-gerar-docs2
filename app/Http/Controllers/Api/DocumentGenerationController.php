@@ -38,7 +38,8 @@ class DocumentGenerationController extends Controller
      */
     public function generate(Request $request)
     {
-        // Validate the request
+        \Log::info('Dados recebidos no DocumentGenerationController:', $request->all());
+        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
@@ -50,12 +51,13 @@ class DocumentGenerationController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Log::error('Erros de validação:', $validator->errors()->toArray());
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
         try {
             // Set global timeout
-            set_time_limit(120);
+            set_time_limit(300); // Aumentado para 300 segundos
 
             // Create documents directory if it doesn't exist
             $documentsDir = public_path('documents');
@@ -65,45 +67,76 @@ class DocumentGenerationController extends Controller
 
             // Generate documents sequentially
             $documents = [];
+            $errors = [];
             
             // 1. Guidelines
             try {
                 $response = $this->guidelinesController->generate($request);
-		$documents['guidelines'] = $response->getData()->url;
+                $responseData = $response->getData();
+                if (isset($responseData->url)) {
+                    $documents['guidelines'] = $responseData->url;
+                } else {
+                    $errors['guidelines'] = 'URL não encontrada na resposta';
+                }
             } catch (Exception $e) {
                 \Log::error('Error generating guidelines: ' . $e->getMessage());
+                $errors['guidelines'] = $e->getMessage();
             }
             
             // 2. Demand
             try {
                 $response = $this->demandController->generate($request);
-		$documents['demand'] = $response->getData()->url;
+                $responseData = $response->getData();
+                if (isset($responseData->url)) {
+                    $documents['demand'] = $responseData->url;
+                } else {
+                    $errors['demand'] = 'URL não encontrada na resposta';
+                }
             } catch (Exception $e) {
                 \Log::error('Error generating demand: ' . $e->getMessage());
+                $errors['demand'] = $e->getMessage();
             }
             
-            // 3. Risk Matrix
-            try {
-                $response = $this->riskMatrixController->generate($request);
-		$documents['riskMatrix'] = $response->getData()->url;
-            } catch (Exception $e) {
-                \Log::error('Error generating risk matrix: ' . $e->getMessage());
-            }
-            
-            // 4. Preliminary Study
+            // 3. Preliminary Study
             try {
                 $response = $this->preliminaryStudyController->generate($request);
-		$documents['preliminaryStudy'] = $response->getData()->url;
+                $responseData = $response->getData();
+                if (isset($responseData->url)) {
+                    $documents['preliminaryStudy'] = $responseData->url;
+                } else {
+                    $errors['preliminaryStudy'] = 'URL não encontrada na resposta';
+                }
             } catch (Exception $e) {
                 \Log::error('Error generating preliminary study: ' . $e->getMessage());
+                $errors['preliminaryStudy'] = $e->getMessage();
+            }
+            
+            // 4. Risk Matrix
+            try {
+                $response = $this->riskMatrixController->generate($request);
+                $responseData = $response->getData();
+                if (isset($responseData->url)) {
+                    $documents['riskMatrix'] = $responseData->url;
+                } else {
+                    $errors['riskMatrix'] = 'URL não encontrada na resposta';
+                }
+            } catch (Exception $e) {
+                \Log::error('Error generating risk matrix: ' . $e->getMessage());
+                $errors['riskMatrix'] = $e->getMessage();
             }
             
             // 5. Reference Terms
             try {
                 $response = $this->referenceTermsController->generate($request);
-		$documents['referenceTerms'] = $response->getData()->url;
+                $responseData = $response->getData();
+                if (isset($responseData->url)) {
+                    $documents['referenceTerms'] = $responseData->url;
+                } else {
+                    $errors['referenceTerms'] = 'URL não encontrada na resposta';
+                }
             } catch (Exception $e) {
                 \Log::error('Error generating reference terms: ' . $e->getMessage());
+                $errors['referenceTerms'] = $e->getMessage();
             }
             
             // Check if at least one document was generated
@@ -113,13 +146,15 @@ class DocumentGenerationController extends Controller
             
             return response()->json([
                 'success' => true,
-                'documents' => $documents
+                'documents' => $documents,
+                'errors' => $errors
             ]);
         } catch (Exception $e) {
             \Log::error('Error in document generation: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erro ao gerar documentos: ' . $e->getMessage()
+                'message' => 'Erro ao gerar documentos: ' . $e->getMessage(),
+                'errors' => $errors ?? []
             ], 500);
         }
     }
