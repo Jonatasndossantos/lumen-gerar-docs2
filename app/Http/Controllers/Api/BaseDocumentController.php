@@ -40,12 +40,15 @@ class BaseDocumentController extends Controller
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
             ])
-            ->timeout(60) // Aumenta o timeout para 60 segundos
-            ->retry(3, 1000) // Tenta 3 vezes com delay de 1 segundo
+            ->timeout(120) // Aumentado para 120 segundos
+            ->retry(3, 2000, function ($exception, $request) {
+                return $exception instanceof \Illuminate\Http\Client\ConnectionException ||
+                       $exception instanceof \Illuminate\Http\Client\TimeoutException;
+            }) // Retry com backoff exponencial
             ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => env('OPENAI_MODEL', 'gpt-4-turbo'), // Usa GPT-4 por padrão
+                'model' => env('OPENAI_MODEL', 'gpt-4-turbo'),
                 'messages' => [
-                    ['role' => 'system', 'content' => 'Você é um assistente de geração de documentos públicos brasileiros. Retorne APENAS JSON válido, sem texto adicional.'],
+                    ['role' => 'system', 'content' => 'Você é um assistente de geração de documentos públicos brasileiros. Retorne APENAS JSON válido, sem texto adicional. O JSON deve ser um objeto com chaves e valores, onde todos os valores são strings.'],
                     ['role' => 'user', 'content' => $prompt],
                 ],
                 'temperature' => 0.7,
@@ -76,6 +79,14 @@ class BaseDocumentController extends Controller
             if (!is_array($data)) {
                 throw new \Exception('O JSON retornado não é um array válido');
             }
+
+            // Converte todos os valores para string
+            $data = array_map(function($value) {
+                if (is_array($value)) {
+                    return implode("\n", $value);
+                }
+                return (string) $value;
+            }, $data);
 
             // Salva no cache
             Cache::put($cacheKey, $data, $this->cacheTime);

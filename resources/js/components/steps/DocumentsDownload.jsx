@@ -54,8 +54,24 @@ const DocumentsDownload = ({ formData, prevStep }) => {
     };
 
     const shareOnWhatsApp = () => {
-        const text = encodeURIComponent("Acabei de usar o Sistema de Construção Inteligente de Documentos de Licitação. Confira: https://lumen");
-        window.open(`https://wa.me/?text=${text}`, '_blank');
+        // Create a list of generated documents
+        const generatedDocs = documentTypes
+            .filter(doc => doc.status === 'done')
+            .map(doc => `• ${doc.name}`)
+            .join('\n');
+
+        // Create a more detailed message with proper emoji encoding
+        const message = `Sistema de Construção Inteligente de Documentos de Licitação
+
+Documentos gerados:
+${generatedDocs}
+
+Utilizei o sistema para criar documentos de licitação de forma inteligente e eficiente.
+
+Acesse: https://lumenpublica.com.br`;
+
+        const encodedMessage = encodeURIComponent(message);
+        window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
     };
 
     return (

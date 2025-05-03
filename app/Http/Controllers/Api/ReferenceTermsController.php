@@ -27,6 +27,12 @@ class ReferenceTermsController extends Controller
 
             // Preenche os dados no template
             foreach ($data as $key => $value) {
+                // Converte arrays para string
+                if (is_array($value)) {
+                    $value = implode("\n", $value);
+                }
+                // Converte outros tipos para string
+                $value = (string) $value;
                 $templateProcessor->setValue($key, $value);
             }
 
