@@ -95,32 +95,28 @@ class RiskMatrixController extends Controller
             }
 
             // Processar os riscos da string
-            $riscosString = $data['data']['riscos'];
-            $blocos = preg_split('/\n(?=\d+\n)/', trim($riscosString));
+            $riscos = $data['data']['riscos'];
             
-            foreach ($blocos as $bloco) {
-                $linhas = array_values(array_filter(explode("\n", trim($bloco))));
-                if (count($linhas) >= 8) {
-                    $table->addRow();
-                    $campos = [
-                        trim($linhas[0]), // seq
-                        trim($linhas[1]), // evento
-                        trim($linhas[2]), // dano
-                        trim($linhas[3]), // impacto
-                        trim($linhas[4]), // probabilidade
-                        trim($linhas[5]), // acao_preventiva
-                        trim($linhas[6]), // responsavel_preventiva
-                        trim($linhas[7]), // acao_contingencia
-                        isset($linhas[8]) ? trim($linhas[8]) : '-' // responsavel_contingencia
-                    ];
-                    
-                    foreach ($campos as $campo) {
-                        $cell = $table->addCell(1500, [
-                            'borderSize' => 6,
-                            'borderColor' => '000000'
-                        ]);
-                        $cell->addText($campo, $textStyle);
-                    }
+            foreach ($riscos as $risco) {
+                $table->addRow();
+                $campos = [
+                    $risco['seq'],
+                    $risco['evento'],
+                    $risco['dano'],
+                    $risco['impacto'],
+                    $risco['probabilidade'],
+                    $risco['acao_preventiva'],
+                    $risco['responsavel_preventiva'],
+                    $risco['acao_contingencia'],
+                    $risco['responsavel_contingencia']
+                ];
+                
+                foreach ($campos as $campo) {
+                    $cell = $table->addCell(1500, [
+                        'borderSize' => 6,
+                        'borderColor' => '000000'
+                    ]);
+                    $cell->addText($campo, $textStyle);
                 }
             }
 
